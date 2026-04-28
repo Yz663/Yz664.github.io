@@ -391,7 +391,6 @@
             const bestScoreTextEl = document.getElementById('bestScoreText');
             const diffButtons = document.getElementById('diffButtons');
 
-            // 🌟 难度配置 - 已加大所有管道左右间距
             const DIFFICULTY_CONFIG = {
                 easy: {
                     name: '⭐ 简单',
@@ -509,8 +508,10 @@
                 bird.width = canvasWidth * 0.1;
                 bird.height = bird.width * 0.88;
                 bird.x = canvasWidth * 0.22;
-                bird.gravity = canvasHeight * 0.00055;
-                bird.jumpForce = canvasHeight * 0.012;
+                // 🌟 降低重力：从0.00055降至0.00035，掉落更慢
+                bird.gravity = canvasHeight * 0.00035;
+                // 🌟 略微降低跳跃力度，让飞行更平稳
+                bird.jumpForce = canvasHeight * 0.009;
             }
 
             function resetBird() {
@@ -922,7 +923,15 @@
                 requestAnimationFrame(gameLoop);
             }
 
-            function flap() {
+            // ✅ 修复后的 flap：从事件对象中检查目标，排除按钮
+            function flap(e) {
+                // 如果事件来自按钮元素，直接返回，不处理
+                if (e && e.target) {
+                    const target = e.target;
+                    if (target.tagName === 'BUTTON' || target.closest('button')) {
+                        return;
+                    }
+                }
                 if (STATE.status === 'idle') {
                     startGame();
                     return;
@@ -976,13 +985,14 @@
             window.restartGame = restartGame;
             window.backToMenu = backToMenu;
 
+            // ✅ 修复移动端按钮点击：传入事件对象，由 flap 内部过滤按钮
             gameWrapper.addEventListener('click', (e) => {
                 e.preventDefault();
-                flap();
+                flap(e);
             });
             gameWrapper.addEventListener('touchstart', (e) => {
                 e.preventDefault();
-                flap();
+                flap(e);
             });
             document.addEventListener('keydown', (e) => {
                 if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
@@ -997,8 +1007,8 @@
                     for (const p of pipes) p.width = pipeWidth;
                     bird.width = canvasWidth * 0.1;
                     bird.height = bird.width * 0.88;
-                    bird.gravity = canvasHeight * 0.00055;
-                    bird.jumpForce = canvasHeight * 0.012;
+                    bird.gravity = canvasHeight * 0.00035;
+                    bird.jumpForce = canvasHeight * 0.009;
                     groundHeight = canvasHeight * GROUND_HEIGHT_RATIO;
                     applyDifficultyConfig();
                 }
@@ -1021,7 +1031,7 @@
 
             init();
             gameLoop();
-            console.log('🐤 笨🐤先飞 - 轻松版已就绪！');
+            console.log('🐤 笨🐤先飞 - 移动端修复 & 慢速版已就绪！');
         })();
     </script>
 </body>
